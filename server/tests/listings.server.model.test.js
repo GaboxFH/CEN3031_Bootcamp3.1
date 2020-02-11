@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import Listing from '../models/ListingModel.js';
 import config from '../config/config.js';
 import {clearAndRefill} from "../JSONToMongo";
+jest.setTimeout(20000); 
 
 let listing = {
     code: "LBWEST",

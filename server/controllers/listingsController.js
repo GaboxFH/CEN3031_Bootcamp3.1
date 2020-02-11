@@ -23,37 +23,88 @@ import coordinates from './coordinatesController.js';
 /* Create a listing */
 export const create = async (req, res) => {
     /* Instantiate a Listing */
-    /* save the coordinates from the coordinatesController (located in req.results if there is an address property) */
-    /* Then save the listing to the database */
-};
+    let listing = new Listing(req.body);
 
+    /* save the coordinates from the coordinatesController (located in req.results if there is an address property) */
+    if(req.results) {
+        listing.coordinates = {
+          latitude: req.results.lat, 
+          longitude: req.results.lng
+        };
+      }
+
+    /* Then save the listing to the database */
+    listing.save(function(err) {
+        if(err) {
+          console.log(err);
+          res.status(400).send(err);
+        } else {
+          res.json(listing);
+          console.log(listing)
+        }
+      });
+    };
+    
+    
 /* Show the current listing */
 export const read = (req, res) => {
     /* send back the listing as json from the request */
-    /* If the listing could _not_ be found, be sure to send back a response in the following format: {error: 'Some message that indicates an error'} */
+    Listing.findById(req.params.listingId, (err, listing) => {
+        if (err) { res.send(err); }
+        res.json(listing);
+    });
 };
+
+    /* If the listing could _not_ be found, be sure to send back a response in the following format: {error: 'Some message that indicates an error'} */
 
 /* Update a listing - note the order in which this function is called by the router*/
 export const update = (req, res) => {
-    const listing = req.listing;
+    // const listing = req.listing;
 
-    /* Replace the listings's properties with the new properties found in req.body */
+        /* Replace the listings's properties with the new properties found in req.body */
+    Listing.findByIdAndUpdate(req.params.listingId, req.listing, (err, listing) => {
+        if (err) { res.send(err); }
+        else {
+            res.send(listing);
 
-    /*save the coordinates (located in req.results if there is an address property) */
+        }
 
-    /* Save the listing */
+    });
+
 
 };
 
 /* Delete a listing */
 export const remove = (req, res) => {
     /* Add your code to remove the listins */
-    /* If the listing could _not_ be found, be sure to send back a response in the following format: {error: 'Some message that indicates an error'} */
-};
+
+    let listing = req.listing;
+		console.log("Removing:");
+        console.log(req.params.listingId);
+        
+        Listing.findByIdAndRemove(listing, (err, listing) => {
+            if (err) { res.send(err); }
+
+            else{
+                res.status(200);
+                res.end();
+            }
+        });
+    };
+
+
 
 /* Retreive all the directory listings, sorted alphabetically by listing code */
 export const list = (req, res) => {
     /* Add your code. Make sure to send the documents as a JSON response.*/
+    Listing.find({}, null, {sort: {code: 1}}, function(err, listing) {
+        if (err) {
+                throw err;
+                res.status(400).send(err);
+        } else {
+                res.json(listing);
+        }
+});
 };
 
 /* 
@@ -64,4 +115,13 @@ export const list = (req, res) => {
         then finally call next
  */
 export const listingByID = (req, res, next, id) => {
+    Listing.findById(id).exec(function(err, listing) {
+        if(err) {
+          res.status(400).send(err);
+        } else {
+          req.listing = listing;
+          next();
+        }
+      });
 };
+
